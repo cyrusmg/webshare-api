@@ -9,14 +9,11 @@ import re
 import urllib.request
 import os.path
 import shutil
-import logging, argparse
+import argparse
 from passlib.hash import md5_crypt
 from xml.etree import ElementTree
 
 BASE_URL = "https://webshare.cz/api/"
-
-def get_logger():
-    return logging.getLogger(__name__)
 
 def get_hashed_password(user_name, password, salt):
     password = hashlib.sha1(md5_crypt.encrypt(password, salt=salt).encode('utf-8')).hexdigest()
@@ -101,19 +98,30 @@ def download_urls(urls, dest_path, user_name, password):
     salt = get_salt(user_name)
     token = do_login(user_name, password, salt)
     for url in urls:
-        get_logger().info("Downloading URL: {}".format(url))
         download(token, url, dest_path)
-        get_logger().info("Downloaded")
-    get_logger().info("Finished")
+
+class WebshareAPI:
+    def __init__(self):
+        self.token = ""
+
+    def login(self, user_name, password):
+        salt = get_salt(user_name)
+        self.token = do_login(user_name, password, salt)
+
+    def download_file(self, url, dest_path):
+        file_id = parse_file_id(url)
+        download_url = get_download_link(file_id, self.token)
+        download_file(download_url, dest_path)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('-u', '--user-name', type=str, help='your webshare username (REQUIRED)', required=True)
     parser.add_argument('-p', '--password', type=str, help='your webshare password (REQUIRED)', required=True)
-    parser.add_argument('links', metavar='link', type=str, nargs='+', help='file link to be downloaded')
+    parser.add_argument('link', metavar='link', type=str, help='file link to be downloaded')
     parser.add_argument('-d', '--dest', type=str, default='.', help='destination folder (default is current folder)')
     params = parser.parse_args()
-    logging.basicConfig(level=logging.INFO)
-    get_logger().info("Destionation folder: {}".format(params.dest))
-    download_urls(params.links, params.dest, params.user_name, params.password)
+
+    webshare = WebshareAPI()
+    webshare.login(params.user_name, params.password)
+    webshare.download_file(params.link, params.dest)
 
