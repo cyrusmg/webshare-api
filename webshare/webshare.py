@@ -19,7 +19,7 @@ class WebshareAPI:
         self._token = ""
 
     def login(self, user_name, password):
-        """Logs {{user_name}} in Webshare API"""
+        """Logs {user_name} in Webshare API"""
         salt = self.get_salt(user_name)
         headers = {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'}
         url = self._base_url + 'login/'
@@ -41,7 +41,7 @@ class WebshareAPI:
         self._token = root.find('token').text
 
     def download_file(self, url, dest_path):
-        """Downloads file in {{url}} to {{dest_path}}"""
+        """Downloads file in {url} to {dest_path}"""
         file_id = self.get_file_id(url)
         download_url = self.get_download_link(file_id)
 
@@ -75,7 +75,7 @@ class WebshareAPI:
         return root.find('salt').text
 
     def get_file_id(self, url):
-        """Return file_id for given webshare URL"""
+        """Return {file_id} for given webshare URL"""
         # Example URL: https://webshare.cz/#/file/7e31cQ7l44/txt-txt?nojs=true
         regex = r'https?://(?:www\.)?webshare\.cz/(?:#/)?file/(?P<ID>\w+)'
         match = re.match(regex, url)
@@ -84,6 +84,7 @@ class WebshareAPI:
         return match.groupdict()['ID']
 
     def get_download_link(self, file_id):
+        """Query actual download link from {file_id}"""
         headers = {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'}
         url = self._base_url + 'file_link/'
         data = {'ident' : file_id, 'wst' : self._token}
